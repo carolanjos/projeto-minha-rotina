@@ -1,5 +1,5 @@
 import { Task } from '../entities/task.entity'
-import type { TaskInterface } from '../interfaces/task.interface'
+import type { TaskInterface, TaskPriority } from '../interfaces/task.interface'
 
 const STORAGE_KEY = 'tasks'
 

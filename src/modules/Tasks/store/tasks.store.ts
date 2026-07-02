@@ -2,6 +2,7 @@ import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { Task } from '../entities/task.entity'
 import taskService from '../services/task.service'
+import type { TaskPriority } from '../interfaces/task.interface'
 
 export const useTasksStore = defineStore('tasks', () => {
   const tasks = ref<Task[]>(taskService.getAll())
