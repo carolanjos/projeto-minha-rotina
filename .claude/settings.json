@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx --version)",
+      "Bash(npx playwright *)",
+      "Bash(timeout 30 bash -c 'until curl -sf http://localhost:5173 >/dev/null; do sleep 1; done')",
+      "Read(//tmp/**)",
+      "Bash(node \"C:\\\\Users\\\\CAROLI~1\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-CarolinadosAnjos-minha-rotina\\\\a3485a72-483d-4519-bc15-4ccab23a4747\\\\scratchpad\\\\screenshot.mjs\")",
+      "Bash(node ./_screenshot.mjs)",
+      "Bash(npx --yes -p playwright@1.61.1 node ./_screenshot.mjs)",
+      "Bash(npm install *)"
+    ]
+  }
+}
