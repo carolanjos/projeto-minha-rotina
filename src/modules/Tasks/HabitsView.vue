@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useHabitsStore } from './Habits/store/habits.store'
+import { useHabitsStore } from '../Habits/Habits/store/habits.store'
 
 const store = useHabitsStore()
 const showForm = ref(false)
