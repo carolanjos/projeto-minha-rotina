@@ -2,6 +2,8 @@
 
 Aplicação de lista de tarefas (to-do list) construída com Vue 3, TypeScript e Pinia. Permite criar tarefas com prioridade, categoria e agendamento (dia da semana / horário), marcar como concluídas, editar, filtrar e alternar entre tema claro e escuro.
 
+Link do site: https://projeto-minha-rotina-xp2t.vercel.app/
+
 ![Tela principal do Minha Rotina](docs/screenshot.png)
 
 ## Funcionalidades
