@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Árvore de Tarefas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ea;
+    --surface: #ffffff;
+    --surface-2: #eee9dd;
+    --text: #24221b;
+    --text-muted: #6f6a5a;
+    --border: #ded8c7;
+    --accent: #3d6b5c;
+    --accent-soft: #e2ebe6;
+    --accent-contrast: #ffffff;
+    --pending: #b3562e;
+    --pending-soft: #f7e7dc;
+    --shadow: 0 1px 2px rgba(36,34,27,0.04), 0 8px 24px rgba(36,34,27,0.06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1b1912;
+      --surface: #242219;
+      --surface-2: #2c2a1f;
+      --text: #f1ede1;
+      --text-muted: #a7a08c;
+      --border: #3b3627;
+      --accent: #7fc2a9;
+      --accent-soft: #263831;
+      --accent-contrast: #14231d;
+      --pending: #e5945f;
+      --pending-soft: #3a2b1e;
+      --shadow: 0 1px 2px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.3);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #1b1912;
+    --surface: #242219;
+    --surface-2: #2c2a1f;
+    --text: #f1ede1;
+    --text-muted: #a7a08c;
+    --border: #3b3627;
+    --accent: #7fc2a9;
+    --accent-soft: #263831;
+    --accent-contrast: #14231d;
+    --pending: #e5945f;
+    --pending-soft: #3a2b1e;
+    --shadow: 0 1px 2px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  main {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  header {
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: 2rem;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+    text-wrap: balance;
+  }
+
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 20px;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .filter-btn {
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .filter-btn:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .filter-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .filter-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-contrast);
+  }
+
+  .filter-btn .count {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.75;
+    font-weight: 500;
+  }
+
+  ul.task-list, ul.subtask-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  ul.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  li.task {
+    border-radius: 10px;
+  }
+
+  .task-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 8px;
+    border-radius: 10px;
+  }
+
+  li.task > .task-row:hover {
+    background: var(--surface-2);
+  }
+
+  .checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 19px;
+    height: 19px;
+    min-width: 19px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    margin-top: 1px;
+    cursor: pointer;
+    position: relative;
+    background: var(--surface);
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .checkbox:checked::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 1px;
+    width: 5px;
+    height: 9px;
+    border: solid var(--accent-contrast);
+    border-width: 0 2px 2px 0;
+    transform: rotate(40deg);
+  }
+
+  .checkbox:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .task-title {
+    font-size: 0.98rem;
+    line-height: 1.35;
+  }
+
+  .task.depth-0 > .task-row .task-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500;
+    font-size: 1.05rem;
+  }
+
+  .task.done > .task-row > .task-main > .task-title {
+    color: var(--text-muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--border);
+  }
+
+  .task-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .badge.pending {
+    background: var(--pending-soft);
+    color: var(--pending);
+  }
+
+  .badge.clear {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .task-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  ul.subtask-list {
+    margin-left: 9px;
+    padding-left: 18px;
+    border-left: 1.5px solid var(--border);
+    margin-top: 2px;
+    margin-bottom: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .empty-state {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding: 24px 8px;
+    text-align: center;
+  }
+
+  details.explainer {
+    margin-top: 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-2);
+    padding: 4px 16px;
+  }
+
+  details.explainer summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.88rem;
+    padding: 12px 0;
+    color: var(--text);
+  }
+
+  details.explainer summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .explainer pre {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+
+  .explainer p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  .explainer code {
+    font-size: 0.85em;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+
+  .explainer ul {
+    padding-left: 20px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Árvore de Tarefas</h1>
+    <p class="subtitle">Exercício de recursão: filtrar tarefas por pendências em qualquer nível.</p>
+  </header>
+
+  <div class="card">
+    <div class="filters" id="filters"></div>
+    <ul class="task-list" id="task-list"></ul>
+  </div>
+
+  <details class="explainer">
+    <summary>Ver a lógica por trás do filtro "Com pendências"</summary>
+    <p>Cada tarefa carrega um array <code>subtasks</code> (vazio quando é uma folha). O filtro usa duas peças:</p>
+    <pre><code>function hasPendingDeep(task) {
+  if (!task.done) return true;
+  return task.subtasks.some(hasPendingDeep);
+}
+
+function makeFilter(kind) {
+  if (kind === 'all') return () =&gt; true;
+  if (kind === 'pending') return t =&gt; !t.done;
+  if (kind === 'done') return t =&gt; t.done;
+  if (kind === 'nested-pending') return t =&gt; hasPendingDeep(t);
+}</code></pre>
+    <p>O caso base não é um <code>if</code> explícito: quando <code>subtasks</code> está vazio, <code>.some()</code> percorre zero itens e retorna <code>false</code> sozinho — é o array vazio que resolve a recursão, não uma linha extra de código.</p>
+    <p>Repare em dois comportamentos que só aparecem testando com tarefas reais:</p>
+    <ul>
+      <li><strong>"Ler artigo sobre closures"</strong> está incompleta e sua única subtarefa já foi concluída — mesmo assim aparece em "Com pendências", porque <code>!task.done</code> já é <code>true</code> na própria tarefa, antes mesmo de olhar para as subtarefas.</li>
+      <li><strong>"Preparar apresentação de sexta"</strong> está marcada como concluída, mas tem uma subtarefa pendente — ela aparece em "Com pendências" (a recursão desceu até achar a pendência), embora também apareça em "Concluídas" (o filtro <code>done</code> olha só para o topo). É um sinal de que "pendência em qualquer nível" e "tarefa concluída" são perguntas independentes.</li>
+    </ul>
+  </details>
+</main>
+
+<script>
+  const tasks = [
+    {
+      id: 1, title: 'Aprender recursão', done: false, subtasks: [
+        { id: 11, title: 'Entender o caso base', done: true, subtasks: [] },
+        {
+          id: 12, title: 'Praticar com árvore de tarefas', done: false, subtasks: [
+            { id: 121, title: 'Resolver desafio do filtro', done: false, subtasks: [] },
+            { id: 122, title: 'Revisar hasPendingDeep', done: true, subtasks: [] }
+          ]
+        }
+      ]
+    },
+    {
+      id: 2, title: 'Organizar rotina matinal', done: true, subtasks: [
+        { id: 21, title: 'Definir horário de acordar', done: true, subtasks: [] },
+        { id: 22, title: 'Montar checklist da manhã', done: true, subtasks: [] }
+      ]
+    },
+    {
+      id: 3, title: 'Preparar apresentação de sexta', done: true, subtasks: [
+        { id: 31, title: 'Escrever slides', done: true, subtasks: [] },
+        { id: 32, title: 'Ensaiar a fala', done: false, subtasks: [] }
+      ]
+    },
+    {
+      id: 4, title: 'Revisar orçamento doméstico', done: false, subtasks: []
+    },
+    {
+      id: 5, title: 'Ler artigo sobre closures', done: false, subtasks: [
+        { id: 51, title: 'Fazer anotações', done: true, subtasks: [] }
+      ]
+    }
+  ];
+
+  function hasPendingDeep(task) {
+    if (!task.done) return true;
+    return task.subtasks.some(hasPendingDeep);
+  }
+
+  function makeFilter(kind) {
+    if (kind === 'all') return () => true;
+    if (kind === 'pending') return t => !t.done;
+    if (kind === 'done') return t => t.done;
+    if (kind === 'nested-pending') return t => hasPendingDeep(t);
+  }
+
+  const FILTERS = [
+    { kind: 'all', label: 'Todas' },
+    { kind: 'pending', label: 'Pendentes' },
+    { kind: 'done', label: 'Concluídas' },
+    { kind: 'nested-pending', label: 'Com pendências' }
+  ];
+
+  let currentFilter = 'all';
+
+  function countLeaves(task) {
+    if (task.subtasks.length === 0) return { total: 1, done: task.done ? 1 : 0 };
+    return task.subtasks.reduce((acc, st) => {
+      const sub = countLeaves(st);
+      return { total: acc.total + sub.total, done: acc.done + sub.done };
+    }, { total: 1, done: task.done ? 1 : 0 });
+  }
+
+  function renderFilters() {
+    const container = document.getElementById('filters');
+    container.innerHTML = '';
+    FILTERS.forEach(f => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-btn' + (f.kind === currentFilter ? ' active' : '');
+      btn.dataset.filter = f.kind;
+      const matches = tasks.filter(makeFilter(f.kind)).length;
+      btn.innerHTML = `${f.label} <span class="count">${matches}</span>`;
+      btn.addEventListener('click', () => {
+        currentFilter = f.kind;
+        renderAll();
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  function renderTaskNode(task, depth) {
+    const li = document.createElement('li');
+    li.className = `task depth-${depth}` + (task.done ? ' done' : '');
+
+    const row = document.createElement('div');
+    row.className = 'task-row';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'checkbox';
+    checkbox.checked = task.done;
+    checkbox.setAttribute('aria-label', `Marcar "${task.title}" como concluída`);
+    checkbox.addEventListener('change', () => {
+      task.done = checkbox.checked;
+      renderAll();
+    });
+
+    const main = document.createElement('div');
+    main.className = 'task-main';
+
+    const title = document.createElement('span');
+    title.className = 'task-title';
+    title.textContent = task.title;
+    main.appendChild(title);
+
+    if (task.subtasks.length > 0) {
+      const meta = document.createElement('div');
+      meta.className = 'task-meta';
+      const { total, done } = countLeaves(task);
+      const badge = document.createElement('span');
+      const allDone = done === total;
+      badge.className = 'badge ' + (allDone ? 'clear' : 'pending');
+      badge.textContent = `${done}/${total} concluídas`;
+      meta.appendChild(badge);
+      main.appendChild(meta);
+    }
+
+    row.appendChild(checkbox);
+    row.appendChild(main);
+    li.appendChild(row);
+
+    if (task.subtasks.length > 0) {
+      const sublist = document.createElement('ul');
+      sublist.className = 'subtask-list';
+      task.subtasks.forEach(st => sublist.appendChild(renderTaskNode(st, depth + 1)));
+      li.appendChild(sublist);
+    }
+
+    return li;
+  }
+
+  function renderTasks() {
+    const list = document.getElementById('task-list');
+    list.innerHTML = '';
+    const visible = tasks.filter(makeFilter(currentFilter));
+    if (visible.length === 0) {
+      const empty = document.createElement('li');
+      empty.className = 'empty-state';
+      empty.textContent = 'Nenhuma tarefa nesse filtro.';
+      list.appendChild(empty);
+      return;
+    }
+    visible.forEach(t => list.appendChild(renderTaskNode(t, 0)));
+  }
+
+  function renderAll() {
+    renderFilters();
+    renderTasks();
+  }
+
+  renderAll();
+</script>
+</body>
+</html>
