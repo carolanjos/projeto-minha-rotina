@@ -1,19 +1,19 @@
-import { Task } from '../entities/task.entity'
-import type { TaskInterface, TaskPriority } from '../interfaces/task.interface'
+import { Task } from '../components/entities/task.entity';
+import type { TaskInterface, TaskPriority } from '../components/interfaces/task.interface';
 
-const STORAGE_KEY = 'tasks'
+const STORAGE_KEY = 'tasks';
 
 class TaskService {
   public getAll(): Task[] {
-    const data = localStorage.getItem(STORAGE_KEY)
-    if (!data) return []
-    const parsed: TaskInterface[] = JSON.parse(data)
-    return parsed.map((d) => new Task(d))
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (!data) return [];
+    const parsed: TaskInterface[] = JSON.parse(data);
+    return parsed.map((d) => new Task(d));
   }
 
   public save(tasks: Task[]): void {
-    const payload = tasks.map((t) => t.formatPayload())
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+    const payload = tasks.map((t) => t.formatPayload());
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   }
 
   public create(
@@ -22,9 +22,12 @@ class TaskService {
     category: string,
     weekDay: number | null,
     time: string | null,
+    date: string | null,
   ): Task {
-    return new Task({ text, priority, category, weekDay, time })
+    return new Task({
+      text, priority, category, weekDay, time, date,
+    });
   }
 }
 
-export default new TaskService()
+export default new TaskService();
