@@ -1,5 +1,7 @@
+const TasksView = () => import('./Tasks.vue');
+
 export default {
   path: '/',
   name: 'tasks',
-  component: () => import('./TasksView.vue'),
-}
+  component: TasksView,
+};
