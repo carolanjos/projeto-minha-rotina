@@ -95,6 +95,7 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
+import { CATEGORY_OPTIONS } from '@/shared/categories';
 import TaskItem from './components/task-item.component.vue';
 import type { TaskInterface, TaskPriority } from './components/interfaces/task.interface';
 
@@ -132,14 +133,7 @@ export default class Tasks extends Vue {
     { text: 'Prioridade alta', value: 'high' },
   ];
 
-  private readonly categoryOptions = [
-    { text: 'Trabalho', value: 'work' },
-    { text: 'Casa', value: 'home' },
-    { text: 'Saúde', value: 'health' },
-    { text: 'Estudo', value: 'study' },
-    { text: 'Pessoal', value: 'personal' },
-    { text: 'Outro', value: 'other' },
-  ];
+  private readonly categoryOptions = CATEGORY_OPTIONS;
 
   private readonly filters = [
     { label: 'Todas', value: 'all' },

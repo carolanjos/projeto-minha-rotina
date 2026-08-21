@@ -68,6 +68,7 @@
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import { mdiPencil, mdiClose } from '@mdi/js';
+import { CATEGORY_LABELS } from '@/shared/categories';
 import type { TaskInterface, TaskPriority } from './interfaces/task.interface';
 
 const DAY_NAMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -82,15 +83,6 @@ const PRIORITY_COLORS: Record<TaskPriority, string> = {
   low: 'secondary',
   medium: 'warning',
   high: 'primary',
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  work: 'Trabalho',
-  home: 'Casa',
-  health: 'Saúde',
-  study: 'Estudo',
-  personal: 'Pessoal',
-  other: 'Outro',
 };
 
 @Component
