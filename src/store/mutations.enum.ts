@@ -17,4 +17,11 @@ export enum Mutations {
 
   // theme
   SET_THEME = 'set-theme',
+
+  // schedule
+  SET_BLOCKS = 'set-blocks',
+  ADD_BLOCK = 'add-block',
+  UPDATE_BLOCK = 'update-block',
+  REMOVE_BLOCK = 'remove-block',
+  REORDER_BLOCKS = 'reorder-blocks',
 }
