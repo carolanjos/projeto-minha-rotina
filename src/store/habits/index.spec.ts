@@ -87,4 +87,17 @@ describe('store/habits', () => {
     expect(habitsState(store).habits[0].completedToday).toBe(false);
     expect(habitsState(store).habits[0].streak).toBe(0);
   });
+
+  it('bestStreak returns the highest streak among today\'s habits, or 0 if there are none', () => {
+    const store = createStore();
+    expect(store.getters['habits/bestStreak']).toBe(0);
+
+    store.dispatch('habits/addHabit', { name: 'Ler', emoji: '📖', weekDays: [0, 1, 2, 3, 4, 5, 6] });
+    store.dispatch('habits/addHabit', { name: 'Correr', emoji: '🏃', weekDays: [0, 1, 2, 3, 4, 5, 6] });
+    const [first, second] = habitsState(store).habits;
+    first.streak = 3;
+    second.streak = 7;
+
+    expect(store.getters['habits/bestStreak']).toBe(7);
+  });
 });
