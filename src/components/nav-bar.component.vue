@@ -2,8 +2,10 @@
   <v-app-bar app flat color="surface" class="nav-bar">
     <v-toolbar-title class="nav-bar__title">Minha Rotina</v-toolbar-title>
     <v-spacer />
+    <v-btn text to="/dashboard" class="nav-bar__link">Início</v-btn>
     <v-btn text to="/" class="nav-bar__link">Tarefas</v-btn>
     <v-btn text to="/habitos" class="nav-bar__link">Hábitos</v-btn>
+    <v-btn text to="/rotina" class="nav-bar__link">Rotina</v-btn>
     <v-btn icon :title="themeTitle" class="nav-bar__theme-btn" @click="toggleTheme">
       <v-icon>{{ themeIcon }}</v-icon>
     </v-btn>
