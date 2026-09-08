@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <nav-bar />
+    <nav-bar v-if="showNav" />
     <v-main>
       <v-container class="app__container" fluid>
         <router-view />
@@ -17,6 +17,11 @@ import NavBar from './components/nav-bar.component.vue';
   components: { NavBar },
 })
 export default class App extends Vue {
+  // Telas de login/cadastro (meta.guest, ver router/index.ts) não têm menu.
+  private get showNav(): boolean {
+    return !this.$route.meta?.guest;
+  }
+
   private get isDark(): boolean {
     return this.$store.getters['theme/isDark'];
   }
@@ -31,6 +36,6 @@ export default class App extends Vue {
 <style lang="sass" scoped>
 .app
   &__container
-    max-width: 800px
-    margin: 0 auto
+    max-width: 1200px
+    margin: 0
 </style>

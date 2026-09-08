@@ -11,24 +11,11 @@ export default {
     state.habits.push(habit);
   },
 
-  // Regra de streak preservada byte-a-byte a partir de
-  // src/modules/Habits/Habits/store/habits.store.ts (antigo store Pinia):
-  // incrementa se a última conclusão foi ontem, senão reseta pra 1;
-  // decrementa (sem passar de 0) ao desmarcar.
-  [Mutations.TOGGLE_HABIT](state: HabitsState, id: number): void {
-    const habit = state.habits.find((h) => h.id === id);
-    if (!habit) return;
-
-    habit.completedToday = !habit.completedToday;
-
-    if (habit.completedToday) {
-      const today = new Date().toDateString();
-      const yesterday = new Date(Date.now() - 86400000).toDateString();
-      habit.streak = habit.lastCompletion === yesterday ? habit.streak + 1 : 1;
-      habit.lastCompletion = today;
-    } else {
-      habit.streak = Math.max(0, habit.streak - 1);
-    }
+  // `habit` já vem com completedToday/streak/lastCompletion calculados pelo
+  // backend (PATCH /habits/{id}/toggle) — aqui só substitui o registro local.
+  [Mutations.TOGGLE_HABIT](state: HabitsState, habit: Habit): void {
+    const index = state.habits.findIndex((h) => h.id === habit.id);
+    if (index !== -1) state.habits.splice(index, 1, habit);
   },
 
   [Mutations.REMOVE_HABIT](state: HabitsState, id: number): void {

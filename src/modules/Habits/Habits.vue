@@ -99,6 +99,10 @@ export default class Habits extends Vue {
     { label: 'Sáb', value: 6 },
   ];
 
+  private created(): void {
+    this.$store.dispatch('habits/fetchHabits');
+  }
+
   private get todaysHabits(): HabitInterface[] {
     return this.$store.getters['habits/todaysHabits'];
   }

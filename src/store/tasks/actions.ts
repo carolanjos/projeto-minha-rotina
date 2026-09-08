@@ -13,8 +13,13 @@ interface AddTaskPayload {
 }
 
 export default {
-  addTask({ commit, state }: any, payload: AddTaskPayload): void {
-    const task = taskService.create(
+  async fetchTasks({ commit }: any): Promise<void> {
+    const tasks = await taskService.getAll();
+    commit(Mutations.SET_TASKS, tasks);
+  },
+
+  async addTask({ commit }: any, payload: AddTaskPayload): Promise<void> {
+    const task = await taskService.create(
       payload.text,
       payload.priority ?? 'medium',
       payload.category ?? 'other',
@@ -23,26 +28,27 @@ export default {
       payload.date ?? null,
     );
     commit(Mutations.ADD_TASK, task);
-    taskService.save((state as TasksState).tasks);
   },
 
-  toggleTask({ commit, state }: any, id: number): void {
-    commit(Mutations.TOGGLE_TASK, id);
-    taskService.save((state as TasksState).tasks);
+  async toggleTask({ commit, state }: any, id: number): Promise<void> {
+    const current = (state as TasksState).tasks.find((t) => t.id === id);
+    const task = await taskService.update(id, { completed: !current?.completed });
+    commit(Mutations.TOGGLE_TASK, task);
   },
 
-  editTask({ commit, state }: any, payload: { id: number; text: string }): void {
-    commit(Mutations.EDIT_TASK, payload);
-    taskService.save((state as TasksState).tasks);
+  async editTask({ commit }: any, payload: { id: number; text: string }): Promise<void> {
+    const task = await taskService.update(payload.id, { text: payload.text });
+    commit(Mutations.EDIT_TASK, task);
   },
 
-  removeTask({ commit, state }: any, id: number): void {
+  async removeTask({ commit }: any, id: number): Promise<void> {
+    await taskService.remove(id);
     commit(Mutations.REMOVE_TASK, id);
-    taskService.save((state as TasksState).tasks);
   },
 
-  clearCompleted({ commit, state }: any): void {
+  async clearCompleted({ commit, state }: any): Promise<void> {
+    const completedIds = (state as TasksState).tasks.filter((t) => t.completed).map((t) => t.id);
+    await Promise.all(completedIds.map((id) => taskService.remove(id)));
     commit(Mutations.CLEAR_COMPLETED_TASKS);
-    taskService.save((state as TasksState).tasks);
   },
 };

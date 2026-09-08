@@ -1,21 +1,47 @@
 <template>
-  <v-app-bar app flat color="surface" class="nav-bar">
-    <v-toolbar-title class="nav-bar__title">Minha Rotina</v-toolbar-title>
-    <v-spacer />
-    <v-btn text to="/" class="nav-bar__link">Tarefas</v-btn>
-    <v-btn text to="/habitos" class="nav-bar__link">Hábitos</v-btn>
-    <v-btn icon :title="themeTitle" class="nav-bar__theme-btn" @click="toggleTheme">
-      <v-icon>{{ themeIcon }}</v-icon>
-    </v-btn>
-  </v-app-bar>
+  <v-navigation-drawer app permanent class="nav-bar">
+    <v-list-item class="nav-bar__title-item">
+      <v-list-item-title class="nav-bar__title">Minha Rotina</v-list-item-title>
+    </v-list-item>
+
+    <v-divider />
+
+    <v-list nav dense>
+      <v-list-item to="/dashboard" class="nav-bar__link">
+        <v-list-item-title>Início</v-list-item-title>
+      </v-list-item>
+      <v-list-item to="/" class="nav-bar__link">
+        <v-list-item-title>Tarefas</v-list-item-title>
+      </v-list-item>
+      <v-list-item to="/habitos" class="nav-bar__link">
+        <v-list-item-title>Hábitos</v-list-item-title>
+      </v-list-item>
+      <v-list-item to="/rotina" class="nav-bar__link">
+        <v-list-item-title>Rotina</v-list-item-title>
+      </v-list-item>
+    </v-list>
+
+    <template #append>
+      <v-list-item :title="themeTitle" class="nav-bar__theme-btn" @click="toggleTheme">
+        <v-icon>{{ themeIcon }}</v-icon>
+        <v-list-item-title class="ml-2">{{ themeTitle }}</v-list-item-title>
+      </v-list-item>
+      <v-list-item title="Sair" class="nav-bar__logout-btn" @click="logout">
+        <v-icon>{{ mdiLogoutIcon }}</v-icon>
+        <v-list-item-title class="ml-2">Sair</v-list-item-title>
+      </v-list-item>
+    </template>
+  </v-navigation-drawer>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import { mdiWeatherNight, mdiWhiteBalanceSunny } from '@mdi/js';
+import { mdiWeatherNight, mdiWhiteBalanceSunny, mdiLogout } from '@mdi/js';
 
 @Component
 export default class NavBarComponent extends Vue {
+  private readonly mdiLogoutIcon = mdiLogout;
+
   private get theme(): string {
     return this.$store.getters['theme/theme'];
   }
@@ -30,6 +56,11 @@ export default class NavBarComponent extends Vue {
 
   private toggleTheme(): void {
     this.$store.dispatch('theme/toggleTheme');
+  }
+
+  private async logout(): Promise<void> {
+    await this.$store.dispatch('auth/logout');
+    this.$router.push('/login');
   }
 }
 </script>
