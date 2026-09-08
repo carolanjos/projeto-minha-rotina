@@ -4,4 +4,5 @@ export default {
   path: '/rotina',
   name: 'schedule',
   component: ScheduleView,
+  meta: { requiresAuth: true },
 };

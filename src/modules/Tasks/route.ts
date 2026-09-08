@@ -4,4 +4,5 @@ export default {
   path: '/',
   name: 'tasks',
   component: TasksView,
+  meta: { requiresAuth: true },
 };

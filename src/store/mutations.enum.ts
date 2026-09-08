@@ -24,4 +24,9 @@ export enum Mutations {
   UPDATE_BLOCK = 'update-block',
   REMOVE_BLOCK = 'remove-block',
   REORDER_BLOCKS = 'reorder-blocks',
+
+  // auth
+  SET_AUTH = 'set-auth',
+  SET_CURRENT_USER = 'set-current-user',
+  CLEAR_AUTH = 'clear-auth',
 }

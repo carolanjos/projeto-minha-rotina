@@ -4,4 +4,5 @@ export default {
   path: '/habitos',
   name: 'habits',
   component: HabitsView,
+  meta: { requiresAuth: true },
 };
