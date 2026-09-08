@@ -11,14 +11,16 @@ export default {
     state.tasks.push(task);
   },
 
-  [Mutations.TOGGLE_TASK](state: TasksState, id: number): void {
-    const task = state.tasks.find((t) => t.id === id);
-    if (task) task.completed = !task.completed;
+  // `task` já vem atualizada da API (PUT /tasks/{id}) — substitui o registro
+  // local em vez de recalcular o campo aqui.
+  [Mutations.TOGGLE_TASK](state: TasksState, task: Task): void {
+    const index = state.tasks.findIndex((t) => t.id === task.id);
+    if (index !== -1) state.tasks.splice(index, 1, task);
   },
 
-  [Mutations.EDIT_TASK](state: TasksState, payload: { id: number; text: string }): void {
-    const task = state.tasks.find((t) => t.id === payload.id);
-    if (task) task.text = payload.text;
+  [Mutations.EDIT_TASK](state: TasksState, task: Task): void {
+    const index = state.tasks.findIndex((t) => t.id === task.id);
+    if (index !== -1) state.tasks.splice(index, 1, task);
   },
 
   [Mutations.REMOVE_TASK](state: TasksState, id: number): void {

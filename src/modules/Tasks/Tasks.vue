@@ -141,6 +141,10 @@ export default class Tasks extends Vue {
     { label: 'Concluídas', value: 'completed' },
   ];
 
+  private created(): void {
+    this.$store.dispatch('tasks/fetchTasks');
+  }
+
   private get sortedTasks(): TaskInterface[] {
     return this.$store.getters['tasks/sortedTasks'];
   }
