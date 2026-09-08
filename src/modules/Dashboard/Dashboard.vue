@@ -53,15 +53,21 @@ import type { ScheduleBlockInterface } from '../Schedule/components/interfaces/s
   components: { SummaryCard, TimelineItem, HabitChecklistGrid },
 })
 export default class Dashboard extends Vue {
-  // Placeholder: não existe domínio de usuário/perfil no projeto ainda.
-  // Trocar por um dado real quando (se) esse domínio existir.
-  private readonly userName = 'Carolina';
-
   private readonly mdiCheckboxMarkedOutlineIcon = mdiCheckboxMarkedOutline;
 
   private readonly mdiCheckIcon = mdiCheck;
 
   private readonly mdiFireIcon = mdiFire;
+
+  private created(): void {
+    this.$store.dispatch('tasks/fetchTasks');
+    this.$store.dispatch('habits/fetchHabits');
+    this.$store.dispatch('schedule/fetchBlocks');
+  }
+
+  private get userName(): string {
+    return this.$store.getters['auth/currentUser']?.name ?? '';
+  }
 
   private get initials(): string {
     return this.userName
