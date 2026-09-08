@@ -1,16 +1,10 @@
 jest.mock('@/modules/Schedule/services/schedule-block.service', () => ({
   __esModule: true,
   default: {
-    getAll: jest.fn(() => []),
-    save: jest.fn(),
-    create: jest.fn((name, category, startTime, durationMinutes, order) => ({
-      id: Math.floor(Math.random() * 1_000_000),
-      name,
-      category,
-      startTime,
-      durationMinutes,
-      order,
-    })),
+    getAll: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    remove: jest.fn(),
   },
 }));
 
@@ -18,6 +12,8 @@ jest.mock('@/modules/Schedule/services/schedule-block.service', () => ({
 import Vue from 'vue';
 // eslint-disable-next-line import/first
 import Vuex from 'vuex';
+// eslint-disable-next-line import/first
+import scheduleBlockService from '@/modules/Schedule/services/schedule-block.service';
 // eslint-disable-next-line import/first
 import scheduleModule from './index';
 // eslint-disable-next-line import/first
@@ -37,49 +33,92 @@ function scheduleState(store: any): ScheduleState {
   return store.state.schedule;
 }
 
-describe('store/schedule', () => {
-  it('addBlock creates a block and assigns the next order within its period', () => {
-    const store = createStore();
+const mockedCreate = scheduleBlockService.create as jest.Mock;
+const mockedUpdate = scheduleBlockService.update as jest.Mock;
+const mockedRemove = scheduleBlockService.remove as jest.Mock;
 
-    store.dispatch('schedule/addBlock', {
+let nextId = 0;
+
+function mockNextCreate(overrides: Record<string, unknown> = {}): number {
+  nextId += 1;
+  const id = nextId;
+  mockedCreate.mockResolvedValueOnce({
+    id,
+    name: 'bloco',
+    category: 'other',
+    startTime: '07:00',
+    durationMinutes: 15,
+    order: 0,
+    ...overrides,
+  });
+  return id;
+}
+
+describe('store/schedule', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+    nextId = 0;
+  });
+
+  it('addBlock creates a block and assigns the next order within its period', async () => {
+    const store = createStore();
+    mockNextCreate({
+      name: 'Café', category: 'health', startTime: '07:00', durationMinutes: 15, order: 0,
+    });
+    mockNextCreate({
+      name: 'Reunião', category: 'work', startTime: '09:00', durationMinutes: 30, order: 1,
+    });
+
+    await store.dispatch('schedule/addBlock', {
       name: 'Café', category: 'health', startTime: '07:00', durationMinutes: 15,
     });
-    store.dispatch('schedule/addBlock', {
+    await store.dispatch('schedule/addBlock', {
       name: 'Reunião', category: 'work', startTime: '09:00', durationMinutes: 30,
     });
 
+    expect(mockedCreate).toHaveBeenNthCalledWith(1, 'Café', 'health', '07:00', 15, 0);
+    expect(mockedCreate).toHaveBeenNthCalledWith(2, 'Reunião', 'work', '09:00', 30, 1);
     const { blocks } = scheduleState(store);
     expect(blocks).toHaveLength(2);
     expect(blocks[0].order).toBe(0);
     expect(blocks[1].order).toBe(1);
   });
 
-  it('reorderBlocks updates the order field to match the given id sequence', () => {
+  it('reorderBlocks sends the new order to the API and applies it locally', async () => {
     const store = createStore();
-    store.dispatch('schedule/addBlock', {
+    const firstId = mockNextCreate({ name: 'A', startTime: '07:00', order: 0 });
+    const secondId = mockNextCreate({ name: 'B', startTime: '08:00', order: 1 });
+    await store.dispatch('schedule/addBlock', {
       name: 'A', category: 'other', startTime: '07:00', durationMinutes: 15,
     });
-    store.dispatch('schedule/addBlock', {
+    await store.dispatch('schedule/addBlock', {
       name: 'B', category: 'other', startTime: '08:00', durationMinutes: 15,
     });
-    const [first, second] = scheduleState(store).blocks;
+    mockedUpdate.mockResolvedValue({});
 
-    store.dispatch('schedule/reorderBlocks', [second.id, first.id]);
+    await store.dispatch('schedule/reorderBlocks', [secondId, firstId]);
 
+    expect(mockedUpdate).toHaveBeenCalledWith(secondId, { order: 0 });
+    expect(mockedUpdate).toHaveBeenCalledWith(firstId, { order: 1 });
     const byId = (id: number) => scheduleState(store).blocks.find((b: any) => b.id === id);
-    expect(byId(second.id)?.order).toBe(0);
-    expect(byId(first.id)?.order).toBe(1);
+    expect(byId(secondId)?.order).toBe(0);
+    expect(byId(firstId)?.order).toBe(1);
   });
 
-  it('updateBlock overwrites the fields of an existing block', () => {
+  it('updateBlock sends the changes to the API and replaces the block with the response', async () => {
     const store = createStore();
-    store.dispatch('schedule/addBlock', {
+    const id = mockNextCreate({
+      name: 'Original', category: 'other', startTime: '07:00', durationMinutes: 15, order: 0,
+    });
+    await store.dispatch('schedule/addBlock', {
       name: 'Original', category: 'other', startTime: '07:00', durationMinutes: 15,
     });
-    const [block] = scheduleState(store).blocks;
+    mockedUpdate.mockResolvedValueOnce({
+      id, name: 'Atualizado', category: 'work', startTime: '08:30', durationMinutes: 45, order: 0,
+    });
 
-    store.dispatch('schedule/updateBlock', {
-      id: block.id, name: 'Atualizado', category: 'work', startTime: '08:30', durationMinutes: 45,
+    await store.dispatch('schedule/updateBlock', {
+      id, name: 'Atualizado', category: 'work', startTime: '08:30', durationMinutes: 45,
     });
 
     const updated = scheduleState(store).blocks[0];
@@ -89,18 +128,21 @@ describe('store/schedule', () => {
     expect(updated.durationMinutes).toBe(45);
   });
 
-  it('removeBlock removes only the targeted block', () => {
+  it('removeBlock removes only the targeted block', async () => {
     const store = createStore();
-    store.dispatch('schedule/addBlock', {
+    const firstId = mockNextCreate({ name: 'A' });
+    mockNextCreate({ name: 'B' });
+    await store.dispatch('schedule/addBlock', {
       name: 'A', category: 'other', startTime: '07:00', durationMinutes: 15,
     });
-    store.dispatch('schedule/addBlock', {
+    await store.dispatch('schedule/addBlock', {
       name: 'B', category: 'other', startTime: '08:00', durationMinutes: 15,
     });
-    const [first] = scheduleState(store).blocks;
+    mockedRemove.mockResolvedValueOnce(undefined);
 
-    store.dispatch('schedule/removeBlock', first.id);
+    await store.dispatch('schedule/removeBlock', firstId);
 
+    expect(mockedRemove).toHaveBeenCalledWith(firstId);
     expect(scheduleState(store).blocks).toHaveLength(1);
     expect(scheduleState(store).blocks[0].name).toBe('B');
   });

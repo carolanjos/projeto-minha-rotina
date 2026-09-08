@@ -91,6 +91,10 @@ export default class Schedule extends Vue {
     { label: 'Noite', value: 'evening' },
   ];
 
+  private created(): void {
+    this.$store.dispatch('schedule/fetchBlocks');
+  }
+
   private get blocksFromStore(): ScheduleBlockInterface[] {
     return this.$store.getters['schedule/blocksByPeriod'](this.activePeriod);
   }

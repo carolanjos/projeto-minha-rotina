@@ -15,12 +15,17 @@ interface UpdateBlockPayload extends AddBlockPayload {
 }
 
 export default {
-  addBlock({ commit, state }: any, payload: AddBlockPayload): void {
+  async fetchBlocks({ commit }: any): Promise<void> {
+    const blocks = await scheduleBlockService.getAll();
+    commit(Mutations.SET_BLOCKS, blocks);
+  },
+
+  async addBlock({ commit, state }: any, payload: AddBlockPayload): Promise<void> {
     const period = periodFromTime(payload.startTime);
     const order = (state as ScheduleState).blocks
       .filter((b) => periodFromTime(b.startTime) === period).length;
 
-    const block = scheduleBlockService.create(
+    const block = await scheduleBlockService.create(
       payload.name,
       payload.category,
       payload.startTime,
@@ -28,21 +33,27 @@ export default {
       order,
     );
     commit(Mutations.ADD_BLOCK, block);
-    scheduleBlockService.save((state as ScheduleState).blocks);
   },
 
-  updateBlock({ commit, state }: any, payload: UpdateBlockPayload): void {
-    commit(Mutations.UPDATE_BLOCK, payload);
-    scheduleBlockService.save((state as ScheduleState).blocks);
+  async updateBlock({ commit }: any, payload: UpdateBlockPayload): Promise<void> {
+    const block = await scheduleBlockService.update(payload.id, {
+      name: payload.name,
+      category: payload.category,
+      startTime: payload.startTime,
+      durationMinutes: payload.durationMinutes,
+    });
+    commit(Mutations.UPDATE_BLOCK, block);
   },
 
-  removeBlock({ commit, state }: any, id: number): void {
+  async removeBlock({ commit }: any, id: number): Promise<void> {
+    await scheduleBlockService.remove(id);
     commit(Mutations.REMOVE_BLOCK, id);
-    scheduleBlockService.save((state as ScheduleState).blocks);
   },
 
-  reorderBlocks({ commit, state }: any, orderedIds: number[]): void {
+  async reorderBlocks({ commit }: any, orderedIds: number[]): Promise<void> {
+    await Promise.all(orderedIds.map((id, index) => scheduleBlockService.update(id, {
+      order: index,
+    })));
     commit(Mutations.REORDER_BLOCKS, { orderedIds });
-    scheduleBlockService.save((state as ScheduleState).blocks);
   },
 };
